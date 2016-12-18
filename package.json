@@ -1,0 +1,21 @@
+{
+  "name": "houston-measurements-grapher",
+  "version": "1.0.0",
+  "description": "Graphs queries against Houston's measurements table",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/houston/houston-measurements-grapher.git"
+  },
+  "author": "Bob Lail",
+  "license": "MIT",
+  "dependencies": {
+    "canvg": "0.0.8",
+    "express": "^4.14.0",
+    "jsdom": "^9.8.3",
+    "pg-promise": "^5.5.0"
+  }
+}
