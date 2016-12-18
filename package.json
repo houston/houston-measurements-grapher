@@ -14,6 +14,7 @@
   "license": "MIT",
   "dependencies": {
     "canvg": "0.0.8",
+    "d3": "^3.5.17",
     "express": "^4.14.0",
     "file-stream-rotator": "0.0.7",
     "jsdom": "^9.8.3",
