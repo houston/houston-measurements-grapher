@@ -92,7 +92,7 @@ function toQuery(options) {
     clauses.push('projects.slug = ANY(${projects})');
   }
 
-  query = `${query} where ${clauses.join(' and ')}`;
+  query = `${query} where ${clauses.join(' and ')} order by taken_at desc`;
 
   return { query: query, queryParams: queryParams };
 }
