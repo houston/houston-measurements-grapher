@@ -1,5 +1,21 @@
+var FileStreamRotator = require('file-stream-rotator')
 var express = require('express');
+var morgan = require('morgan');
+var path = require('path');
+
 var app = express();
+var logDirectory = path.join(__dirname, 'log');
+
+// create a rotating write stream
+var accessLogStream = FileStreamRotator.getStream({
+  date_format: 'YYYYMMDD',
+  filename: path.join(logDirectory, 'access-%DATE%.log'),
+  frequency: 'daily',
+  verbose: false
+});
+
+// setup the logger
+app.use(morgan('combined', { stream: accessLogStream }));
 
 var pgp = require('pg-promise')(/*options*/);                                   // <-- TODO: what options?
 var db = pgp(process.env.HOUSTON_DATABASE_URL);

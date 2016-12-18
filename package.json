@@ -15,7 +15,9 @@
   "dependencies": {
     "canvg": "0.0.8",
     "express": "^4.14.0",
+    "file-stream-rotator": "0.0.7",
     "jsdom": "^9.8.3",
+    "morgan": "^1.7.0",
     "pg-promise": "^5.5.0"
   }
 }
