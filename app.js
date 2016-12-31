@@ -34,6 +34,7 @@ function parseParams(params) {
   var oneMonthAgo = new Date();
   oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
   var queryOptions = { startTime: oneMonthAgo, endTime: now },
+      otherOptions = {},
       graphOptions = { width: 342, height: 102 };
 
   for(var key in params) {
@@ -51,12 +52,16 @@ function parseParams(params) {
       case 'u': graphOptions.max = +value; break;
       case 'w': graphOptions.width = +value; break;
       case 'h': graphOptions.height = +value; break;
+      case 'f': graphOptions.format = value; break;
+
+      // Other Options
+      case 'x': otherOptions.transform = value; break;
 
       default: console.log(`Unrecognized param: ${key}`); break;
     }
   }
 
-  return { queryOptions: queryOptions, graphOptions: graphOptions };
+  return { queryOptions: queryOptions, graphOptions: graphOptions, otherOptions: otherOptions };
 }
 
 // changes BASH-style options `daily.hours.charged.{development,ix-design}`
@@ -69,6 +74,48 @@ function toNamePattern(names) {
     }).replace(/\*/g, '%');
   }).join('|')})`;
 }
+
+
+
+function byTimestamp(measurements, iterator) {
+  var resultsByTimestamp = {}, result;
+  measurements.forEach(function(measurement) {
+    result = resultsByTimestamp[+measurement.timestamp];
+    resultsByTimestamp[+measurement.timestamp] = iterator(measurement, result);
+  });
+  return resultsByTimestamp;
+}
+
+function mapValues(resultsByTimestamp, iterator) {
+  return Object.keys(resultsByTimestamp).map(function(timestamp) {
+    return { timestamp: new Date(+timestamp), value: iterator(timestamp, resultsByTimestamp[timestamp]) };
+  });
+}
+
+function reducePercent(measurements, defaultValue, mapper) {
+  return mapValues(
+    byTimestamp(measurements, function(measurement, accumulator) {
+      accumulator = accumulator || { total: 0, variable: 0 };
+      mapper(measurement, accumulator);
+      return accumulator;
+    }),
+    function(timestamp, accumulator) {
+      return accumulator.total > 0 ? ((accumulator.variable * 100) / accumulator.total) : defaultValue;
+    }
+  );
+}
+
+function reducePercentOf(measurements, totalMeasurement) {
+  return reducePercent(measurements, null, function(measurement, accumulator) {
+    if(measurement.name === totalMeasurement) {
+      accumulator.total += +measurement.value;
+    } else {
+      accumulator.variable += +measurement.value;
+    }
+  });
+}
+
+
 
 function toQuery(options) {
   var queryParams = {
@@ -101,6 +148,7 @@ app.get('/line.png', function (req, res) {
   var ref1 = parseParams(req.query),
       queryOptions = ref1.queryOptions,
       graphOptions = ref1.graphOptions,
+      otherOptions = ref1.otherOptions,
       ref2 = toQuery(queryOptions),
       query = ref2.query,
       queryParams = ref2.queryParams;
@@ -111,6 +159,10 @@ app.get('/line.png', function (req, res) {
 
   db.query(query, queryParams).then(function(data) {
 
+    if(otherOptions.transform === 'percent') {
+      data = reducePercentOf(data, queryOptions.measurements[0]);
+      graphOptions.units = '%';
+    }
 
     var dom = jsdom('<html><body></body></html>');
     var window = dom.defaultView;
