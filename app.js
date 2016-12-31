@@ -65,8 +65,8 @@ function parseParams(params) {
 function toNamePattern(names) {
   return `(${names.map(function(pattern) {
     return pattern.replace(/\{([\w\-,]+)\}/g, function($0, $1) {
-      return `(${$1.replace(',', '|')})`;
-    }).replace('*', '%');
+      return `(${$1.replace(/,/g, '|')})`;
+    }).replace(/\*/g, '%');
   }).join('|')})`;
 }
 
