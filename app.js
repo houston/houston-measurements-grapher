@@ -115,6 +115,17 @@ function reducePercentOf(measurements, totalMeasurement) {
   });
 }
 
+function reduceCumulativePercentOf(measurements, totalMeasurement) {
+  var cumulativeTotal = 0, cumulativeVariable = 0;
+  return reducePercent(measurements, 0, function(measurement, accumulator) {
+    if(measurement.name === totalMeasurement) {
+      accumulator.total = (cumulativeTotal += +measurement.value);
+    } else {
+      accumulator.variable = (cumulativeVariable += +measurement.value);
+    }
+  }).filter(function(d) { return d.value > 0; });
+}
+
 
 
 function toQuery(options) {
@@ -139,7 +150,7 @@ function toQuery(options) {
     clauses.push('projects.slug = ANY(${projects})');
   }
 
-  query = `${query} where ${clauses.join(' and ')} order by taken_at desc`;
+  query = `${query} where ${clauses.join(' and ')} order by taken_at asc`;
 
   return { query: query, queryParams: queryParams };
 }
@@ -161,6 +172,10 @@ app.get('/line.png', function (req, res) {
 
     if(otherOptions.transform === 'percent') {
       data = reducePercentOf(data, queryOptions.measurements[0]);
+      graphOptions.units = '%';
+    }
+    if(otherOptions.transform === 'percent-cumulative') {
+      data = reduceCumulativePercentOf(data, queryOptions.measurements[0]);
       graphOptions.units = '%';
     }
 
